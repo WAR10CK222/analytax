@@ -1,0 +1,70 @@
+# ---------------------------------------------------------------------------------------------------------------
+# Gemini model tiers (validated at startup against apps/orchestrator/src/models/capabilities.ts)
+#
+# thinking: set exactly ONE of
+#   level:  minimal | low | medium | high   (Gemini 3.x; a budget is rejected because it is silently mapped to a level)
+#   budget: integer tokens, 0 = off, -1 = dynamic  (Gemini 2.5)
+#
+# Facts that shaped these defaults (checked 2026-09-22):
+#   - No Gemini Pro model can turn thinking off (3.1 Pro lowest level is `low`; 2.5 Pro minimum budget is 128).
+#     `standard` is therefore "Pro, low thinking": 3.1 Pro at `low` still reasons briefly on harder prompts.
+#   - Gemini 3.x `minimal` is "near off", not fully off. Only gemini-2.5-flash with budget 0 is truly "no thinking".
+#   - `minimal` is rejected (HTTP 400) by gemini-3.7-flash / gemini-3.8-flash.
+#   - Temperature is deprecated for Gemini 3.x and is intentionally not configurable.
+#   - Tool loops on Gemini 3.x require thought signatures to round-trip; the model factory calls generateContent
+#     (streaming disabled) so they survive runs streamed from the web UI.
+# ---------------------------------------------------------------------------------------------------------------
+provider: google
+
+defaults:
+  maxOutputTokens: 16384
+
+tiers:
+  deep:
+    model: gemini-3.1-pro-preview
+    thinking: { level: high }
+    maxConcurrency: 2
+    contextTokens: 80000
+    alternate: { model: gemini-2.5-pro, thinking: { budget: -1 } }
+
+  standard:
+    model: gemini-3.1-pro-preview
+    thinking: { level: low }
+    maxConcurrency: 3
+    contextTokens: 40000
+    alternate: { model: gemini-2.5-pro, thinking: { budget: 128 } }
+
+  fast:
+    model: gemini-3.6-flash
+    thinking: { level: minimal }
+    maxConcurrency: 6
+    contextTokens: 12000
+    alternate: { model: gemini-2.5-flash, thinking: { budget: 0 } }
+
+  fast-thinking:
+    model: gemini-3.8-flash
+    thinking: { level: medium }
+    maxConcurrency: 6
+    contextTokens: 16000
+    alternate: { model: gemini-2.5-flash, thinking: { budget: 4096 } }
+
+# Use every tier's `alternate` instead of its primary model (e.g. when preview quota is exhausted).
+useAlternates: false
+
+# Which tier each orchestrator role uses.
+roles:
+  intake: fast
+  planner: deep
+  replanner: deep
+  judge: fast-thinking
+  synthesizer: standard
+  search: fast
+
+# USD per 1M tokens, used only for cost estimates in metrics and the UI.
+# Fill in from https://ai.google.dev/gemini-api/docs/pricing — values are intentionally left at 0.
+pricing:
+  gemini-3.1-pro-preview: { input: 4, output: 18 }
+  gemini-3.8-flash: { input: 1, output: 18 }
+  gemini-3.6-flash: { input: 1.5, output: 7.5 }
+  gemini-2.5-pro: { input: 2.5, output: 15 }
+  gemini-2.5-flash: { input: 1, output: 2.5 }

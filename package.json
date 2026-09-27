@@ -1,0 +1,56 @@
+{
+    "name": "analytax",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Analytax is a platform for building and running AI agents.",
+    "author": {
+        "name": "Shubham Patel",
+        "url": "https://github.com/WAR10CK222"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/WAR10CK222/analytax.git"
+    },
+    "bugs": {
+        "url": "https://github.com/WAR10CK222/analytax/issues"
+    },
+    "homepage": "https://github.com/WAR10CK222/analytax#readme",
+    "keywords": [
+        "ai",
+        "agents",
+        "platform",
+        "orchestrator"
+    ],
+    "type": "module",
+    "packageManager": "pnpm@10.32.1",
+    "engines": {
+        "node": ">=22.12"
+    },
+    "scripts": {
+        "dev": "concurrently -n api,web -c blue,magenta \"pnpm --filter @analytax/orchestrator dev\" \"pnpm --filter @analytax/web dev\"",
+        "dev:api": "pnpm --filter @analytax/orchestrator dev",
+        "dev:web": "pnpm --filter @analytax/web dev",
+        "typecheck": "pnpm -r typecheck",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "smoke:models": "pnpm --filter @analytax/orchestrator smoke:models",
+        "validate:config": "pnpm --filter @analytax/orchestrator validate:config",
+        "mcp:check": "pnpm --filter @analytax/orchestrator mcp:check",
+        "mcp:example": "pnpm --filter @analytax/orchestrator mcp:example",
+        "payroll:load": "pnpm --filter @analytax/orchestrator payroll:load",
+        "otel:up": "docker compose up -d",
+        "otel:down": "docker compose down"
+    },
+    "devDependencies": {
+        "@types/node": "^22.20.2",
+        "concurrently": "^10.0.5",
+        "typescript": "^5.9.2",
+        "vitest": "^5.0.0"
+    },
+    "pnpm": {
+        "overrides": {
+            "@langchain/core": "1.2.10"
+        }
+    }
+}

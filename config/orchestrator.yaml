@@ -1,0 +1,49 @@
+# ---------------------------------------------------------------------------------------------------------------
+# Orchestrator guards and defaults. Per-run overrides arrive as LangGraph run `context` and are clamped to `limits`.
+# ---------------------------------------------------------------------------------------------------------------
+guards:
+  maxConcurrency: 4        # tasks dispatched per wave
+  maxWaves: 40             # control-plane iterations before forced synthesis
+  maxReplans: 3            # LLM replanner invocations per run
+  maxHumanReviews: 3
+  maxAttempts: 4           # semantic attempts per task across the whole recovery ladder
+  maxInfraRetries: 2       # transient (429/5xx/timeout) requeues per task
+  maxBlocks: 2             # times a task may block on a newly discovered prerequisite
+  maxTotalTasks: 25        # every task ever created in a run
+  maxInitialTasks: 8
+  maxOpsPerPatch: 12
+  maxSpawnDepth: 2         # proposal-of-a-proposal depth
+  maxProposalsPerTask: 3
+  maxAutoSpawned: 6        # proposals auto-accepted without the replanner
+  maxRevisionsPerTask: 1
+  stallReplanAt: 3         # waves without a newly accepted task → forced replan
+  stallStopAt: 5           # → human review (if enabled) or partial synthesis
+  growthFreeze:            # freeze auto-accepted proposals when the plan balloons
+    outstanding: 10
+    factor: 2
+    windowWaves: 3
+  deadlineSec: 900
+  maxClarifyRounds: 1
+
+limits:                    # hard caps for per-run overrides
+  maxConcurrency: 8
+  deadlineSec: 3600
+
+hitl:
+  clarify: true
+  approvePlan: false
+  humanReview: false
+
+evaluation:
+  skipConfidence: 0.8      # low-complexity, non-critical, first-attempt tasks above this skip the LLM judge
+  degradedScore: 0.4       # failed tasks at/above this score keep their partial output as a degraded input
+  maxOutputCharsForJudge: 24000
+
+artifacts:
+  inlineMaxBytes: 4096     # larger task outputs go to the artifact store
+
+paths:
+  agents: agents
+  skills:
+    - skills
+    - .agents/skills

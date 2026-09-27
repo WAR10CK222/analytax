@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------------------------------------------
+# MCP tool servers. Analytax connects to remote MCP servers over HTTP (Streamable HTTP, falling back to SSE) and
+# offers their tools to the agents whose cards list them, e.g. `tools: [web_search, mcp:deepwiki/ask_wiki_question]`
+# or `mcp:deepwiki/*` for every tool the server allows.
+#
+# Local servers work too, as a localhost URL. Analytax never starts, supervises or restarts server processes:
+# run them yourself (see `pnpm mcp:example`). Check connectivity with `pnpm mcp:check`.
+#
+# Toggles:
+#   - `enabled` below turns MCP off entirely; ANALYTAX_MCP_ENABLED=false does the same from the environment.
+#   - `enabled` per server turns one server off.
+#   - Per run: Run settings > Tool servers in the UI, or run context `{"mcp": {"disabled": ["deepwiki"]}}`
+#     (`{"mcp": {"enabled": false}}` for all) from LangGraph Studio or the HTTP API.
+#
+# Secrets: `url` and header values accept ${VAR} and ${VAR:-default} from the environment (.env). Missing variables
+# mark the server "misconfigured" instead of failing startup. Header values never reach logs, telemetry or the UI.
+# ---------------------------------------------------------------------------------------------------------------
+enabled: true
+
+defaults:
+  connectTimeoutMs: 5000 # connect + initialize handshake
+  timeoutMs: 30000 # per tool call
+  maxOutputChars: 20000 # longer tool output is truncated before the agent sees it
+  maxConcurrentCalls: 4 # per server, across all parallel agents
+
+servers:
+  deepwiki:
+    title: DeepWiki
+    description: AI-written documentation for public GitHub repositories.
+    url: https://mcp.deepwiki.com/mcp
+    timeoutMs: 60000 # ask_wiki_question runs its own model; answers can take a while
+
+  github:
+    enabled: false # set GITHUB_MCP_TOKEN in .env, then enable
+    title: GitHub
+    description: Code search and file contents from GitHub.
+    url: https://api.githubcopilot.com/mcp/
+    headers:
+      Authorization: Bearer ${GITHUB_MCP_TOKEN}
+    tools:
+      include: [search_code, get_file_contents]
+
+  local-example:
+    enabled: false # start it yourself with `pnpm mcp:example`, then enable
+    title: Local example
+    description: Echo and clock tools from the bundled example server.
+    url: http://127.0.0.1:3920/mcp
+
+  local-postgres:
+    enabled: true
+    title: Local postgres
+    description: Local postgres database
+    url: http://192.168.1.5:5000/mcp
+    allowInsecure: true # plain http on the LAN: no auth headers are sent to this server
+    timeoutMs: 60000 # aggregates over the 579k-row partitioned payslip_line table can outlast the 30s default
+    guards: # refused before the call leaves Analytax; see src/mcp/sql-guard.ts for what counts as read-only
+      execute_sql:
+        sql: read-only-sql
+    tools:
+      include:
+        [
+          list_tables,
+          list_views,
+          list_indexes,
+          database_overview,
+          get_query_plan,
+          execute_sql,
+        ]

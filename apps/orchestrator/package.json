@@ -1,0 +1,58 @@
+{
+  "name": "@analytax/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/graph/graph.ts"
+  },
+  "scripts": {
+    "dev": "langgraphjs dev --port 2024 --no-browser",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "smoke:models": "tsx scripts/smoke-models.ts",
+    "e2e:server": "tsx scripts/e2e-server.ts",
+    "validate:config": "tsx scripts/validate-config.ts",
+    "mcp:check": "tsx scripts/mcp-check.ts",
+    "mcp:example": "tsx scripts/mcp-example-server.ts",
+    "payroll:load": "tsx scripts/payroll-load.ts"
+  },
+  "dependencies": {
+    "@analytax/contracts": "workspace:*",
+    "@google/genai": "^2.21.0",
+    "@langchain/core": "^1.2.10",
+    "@langchain/google": "^0.2.5",
+    "@langchain/langgraph": "^1.4.14",
+    "@langchain/langgraph-checkpoint": "^1.1.4",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/core": "^2.11.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.222.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.222.0",
+    "@opentelemetry/instrumentation-undici": "^0.32.0",
+    "@opentelemetry/resources": "^2.11.0",
+    "@opentelemetry/sdk-metrics": "^2.11.0",
+    "@opentelemetry/sdk-node": "^0.222.0",
+    "@opentelemetry/sdk-trace-base": "^2.11.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "gray-matter": "^4.0.3",
+    "hono": "^4.13.7",
+    "html-to-text": "^10.0.1",
+    "ipaddr.js": "^2.5.0",
+    "langchain": "^1.5.11",
+    "mathjs": "^15.2.0",
+    "pino": "^10.3.1",
+    "yaml": "^2.9.0",
+    "zod": "^4.6.1"
+  },
+  "devDependencies": {
+    "@langchain/langgraph-cli": "^1.4.5",
+    "@langchain/langgraph-sdk": "^1.10.2",
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^22.20.2",
+    "fast-check": "^4.9.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.2",
+    "vitest": "^5.0.0"
+  }
+}
